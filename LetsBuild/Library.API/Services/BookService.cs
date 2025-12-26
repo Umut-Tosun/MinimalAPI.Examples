@@ -27,7 +27,7 @@ namespace Library.API.Services
             return await applicationDbContext.books.ToListAsync(cancellationToken);
         }
 
-        public async Task<Book?> GetByIsbn(string isbn, CancellationToken cancellationToken = default)
+        public async Task<Book?> GetByIsbnAsync(string isbn, CancellationToken cancellationToken = default)
         {
             return await applicationDbContext.books.FindAsync(isbn, cancellationToken);
         }
