@@ -1,5 +1,6 @@
 using FluentValidation;
 using Library.API.Context;
+using Library.API.Endpoints;
 using Library.API.Models;
 using Library.API.Services;
 using Library.API.Validators;
@@ -9,6 +10,7 @@ using Scalar.AspNetCore;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Threading;
+using static System.Reflection.Metadata.BlobBuilder;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,67 +45,6 @@ app.MapGet("/health", () => "health!").RequireAuthorization();
 
 app.MapOpenApi();
 app.MapScalarApiReference();
+app.UseBookEndpoints();
 
-
-
-app.MapPost("books", async (Book book, IBookService bookService,CancellationToken cancellationToken) =>
-{
-    BookValidator validator = new();
-
-    FluentValidation.Results.ValidationResult validationResult = validator.Validate(book);
-    if (!validationResult.IsValid)
-    {
-      return  Results.BadRequest(validationResult.Errors.Select(s => s.ErrorMessage));
-    }
-
-   var result = await bookService.CreateAsync(book,cancellationToken);
-    if (!result) return Results.BadRequest("Something went wrong!");
-   return Results.Ok(result);
-
-});
-
-app.MapGet("books", async (IBookService bookService,CancellationToken cancellationToken) =>
-{
-    var books = await bookService.GetAllAsync(cancellationToken);
-    return Results.Ok(books);
-});
-
-app.MapGet("books/{isbn}", async (string isbn, IBookService bookService, CancellationToken cancellationToken) =>
-{
-    Book? book = await bookService.GetByIsbnAsync(isbn, cancellationToken);
-    return Results.Ok(book);
-});
-
-app.MapGet("booksByTitle/{title}", async (string title, IBookService bookService, CancellationToken cancellationToken) =>
-{
-    IEnumerable<Book>? books = await bookService.SearchByTitleAsync(title, cancellationToken);
-    return Results.Ok(books);
-});
-
-app.MapPut("books", async (Book book, IBookService bookService, CancellationToken cancellationToken) =>
-{
-    BookValidator validator = new();
-
-    FluentValidation.Results.ValidationResult validationResult = validator.Validate(book);
-    if (!validationResult.IsValid)
-    {
-        return Results.BadRequest(validationResult.Errors.Select(s => s.ErrorMessage));
-    }
-
-    var result = await bookService.UpdateAsync(book, cancellationToken);
-    if (!result) return Results.BadRequest("Something went wrong!");
-    return Results.Ok(result);
-
-});
-
-//app.MapDelete("books/{isbn}", async (string isbn,BookService bookService, CancellationToken cancellationToken) =>
-//{
-//    var result = await bookService.DeleteAsync(isbn, cancellationToken);
-//    if (!result) return Results.BadRequest("Something went wrong!");
-//    return Results.Ok("Success!");
-//});
-app.MapGet("login", (JwtProvider jwtProvider) =>
-{
-    return Results.Ok(new { Token = jwtProvider.CreateToken() });
-});
 app.Run();

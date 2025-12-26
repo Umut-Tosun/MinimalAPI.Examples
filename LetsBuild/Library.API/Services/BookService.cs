@@ -8,7 +8,7 @@ namespace Library.API.Services
     {
         public async Task<bool> CreateAsync(Book book, CancellationToken cancellationToken = default)
         {
-           await applicationDbContext.AddAsync(book, cancellationToken); 
+           await applicationDbContext.books.AddAsync(book, cancellationToken); 
            return await applicationDbContext.SaveChangesAsync() > 0 ;
         }
 
@@ -34,7 +34,7 @@ namespace Library.API.Services
 
         public async Task<IEnumerable<Book>> SearchByTitleAsync(string title, CancellationToken cancellationToken = default)
         {
-            return await applicationDbContext.books.Where(x=>x.Title.Contains(title)).ToListAsync();
+            return await applicationDbContext.books.Where(x=>x.Title.Contains(title)).ToListAsync(cancellationToken);
         }
 
         public async Task<bool> UpdateAsync(Book book, CancellationToken cancellationToken = default)
